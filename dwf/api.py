@@ -45,6 +45,8 @@ class ENUMFILTER(IntEnum):
     ALL = _l.enumfilterAll
     EEXPLORER = _l.enumfilterEExplorer
     DISCOVERY = _l.enumfilterDiscovery
+    DISCOVERY2 = _l.enumfilterDiscovery2
+    DDISCOVERY = _l.enumfilterDDiscovery
 
 def DwfEnumeration(enumfilter=ENUMFILTER.ALL):
     num = _l.FDwfEnum(enumfilter)
@@ -54,6 +56,8 @@ class DwfDevice(object):
     class DEVID(IntEnum):
         EEXPLORER = _l.devidEExplorer
         DISCOVERY = _l.devidDiscovery
+        DISCOVERY2 = _l.devidDiscovery2
+        DDISCOVERY = _l.devidDDiscovery
 
     class DEVVER(IntEnum):
         EEXPLORER_C = _l.devverEExplorerC
@@ -92,7 +96,15 @@ class DwfDevice(object):
         return _l.FDwfEnumConfig(self.idxDevice)
     def configInfo(self, info):
         return _l.FDwfEnumConfigInfo(self.idxDevice, info)
-    
+    @property
+    def configs(self):
+        n = _l.FDwfEnumConfig(self.idxDevice)
+        ret = []
+        for i in range(n):
+            info = {k:_l.FDwfEnumConfigInfo(i, k) for k in self.CONFIGINFO}
+            ret.append(info)
+        return ret
+
     def open(self, config=None):
         return Dwf(self.idxDevice, idxCfg=config)
 
@@ -153,6 +165,10 @@ class Dwf(object):
         if hdwf == self.DEVICE_NONE:
             raise RuntimeError("Device is not found")
         self.hdwf = _HDwf(hdwf)
+    def __enter__(self):
+        return self
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
     def close(self):
         self.hdwf.close()
     def autoConfigureSet(self, auto_configure):
@@ -659,7 +675,7 @@ class DwfDigitalIO(Dwf):
             super(DwfDigitalIO, self).__init__(idxDevice, idxCfg)
     def reset(self, parent=False):
         if parent: super(DwfDigitalIO, self).reset()
-        _l.FDwfDigitalIOReset(sef_l.hdwf)
+        _l.FDwfDigitalIOReset(self.hdwf)
     def configure(self):
         return _l.FDwfDigitalIOConfigure(self.hdwf)
     def status(self):
@@ -918,7 +934,7 @@ class DwfDigitalOut(Dwf):
 
     def typeInfo(self, idxChannel):
         return _make_set(
-            _l.FDwfDigitalOutTypeInfo(sef.hdwf, idxChannel), self.TYPE)
+            _l.FDwfDigitalOutTypeInfo(self.hdwf, idxChannel), self.TYPE)
     def typeSet(self, idxChannel, output_type):
         _l.FDwfDigitalOutTypeSet(self.hdwf, idxChannel, output_type)
     def typeGet(self, idxChannel):

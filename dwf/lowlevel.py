@@ -54,11 +54,15 @@ ENUMFILTER = c_int
 enumfilterAll = 0
 enumfilterEExplorer = 1
 enumfilterDiscovery = 2
+enumfilterDiscovery2 = 3
+enumfilterDDiscovery = 4
 
 # device ID
 DEVID = c_int
 devidEExplorer = 1
 devidDiscovery = 2
+devidDiscovery2 = 3
+devidDDiscovery = 4
 
 # device version
 DEVVER = c_int
